@@ -75,10 +75,10 @@ const MistralIcon = ({ className }: { className?: string }) => (
 );
 
 const models = [
-    { value: "scira-default", label: "Grok 2.0", icon: XAIIcon, iconClass: "!text-neutral-300", description: "xAI's Grok 2.0 model", color: "glossyblack", vision: false, experimental: false, category: "Stable" },
-    { value: "scira-vision", label: "Grok 2.0 Vision", icon: XAIIcon, iconClass: "!text-neutral-300", description: "xAI's Grok 2.0 Vision model", color: "steel", vision: true, experimental: false, category: "Stable" },
-    { value: "scira-mistral", label: "Mistral Small 3.1", icon: MistralIcon, iconClass: "!text-neutral-300", description: "Mistral's Small 3.1 model", color: "orange", vision: true, experimental: false, category: "Stable" },
-    { value: "scira-cmd-a", label: "Command A", icon: "/cohere.svg", iconClass: "!text-neutral-900 dark:!text-white", description: "Cohere's Command A model", color: "purple", vision: false, experimental: true, category: "Experimental" },
+    { value: "scira-gpt-4o-mini", label: "GPT-4o-mini", icon: XAIIcon, iconClass: "!text-neutral-300", description: "GPT-4o-mini model", color: "glossyblack", vision: false, experimental: false, category: "Stable" },
+    { value: "scira-gpt-4o", label: "GPT-4o", icon: XAIIcon, iconClass: "!text-neutral-300", description: "GPT-4o model", color: "glossyblack", vision: false, experimental: false, category: "Stable" },
+    // { value: "scira-claude-3-7-sonnet", label: "Claude 3.7 Sonnet", icon: XAIIcon, iconClass: "!text-neutral-300", description: "Claude 3.5 Sonnet model", color: "glossyblack", vision: false, experimental: false, category: "Stable" },
+    { value: "scira-alpha", label: "Quasar Alpha", icon: XAIIcon, iconClass: "!text-neutral-300", description: "Quasar Alpha model", color: "glossyblack", vision: false, experimental: false, category: "Stable" },
 ];
 
 const getColorClasses = (color: string, isSelected: boolean = false) => {
@@ -1260,7 +1260,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                         notificationType={switchNotification.notificationType}
                     />
 
-                    <div className="relative rounded-lg bg-neutral-100 dark:bg-neutral-900">
+                    <div className="relative rounded-lg bg-neutral-100 dark:bg-neutral-900 ">
                         <Textarea
                             ref={inputRef}
                             placeholder={hasInteracted ? "Ask a new question..." : "Ask a question..."}
@@ -1270,7 +1270,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                             onFocus={handleFocus}
                             onBlur={handleBlur}
                             className={cn(
-                                "min-h-[72px] w-full resize-none rounded-lg",
+                                "min-h-[72px] w-full resize-none rounded-lg custom-scrollbar",
                                 "text-base leading-relaxed",
                                 "bg-neutral-100 dark:bg-neutral-900",
                                 "border !border-neutral-200 dark:!border-neutral-700",

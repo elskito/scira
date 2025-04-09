@@ -4,6 +4,7 @@ import { serverEnv } from '@/env/server';
 import { xai } from '@ai-sdk/xai';
 import { cohere } from '@ai-sdk/cohere'
 import { mistral } from "@ai-sdk/mistral";
+import { openai } from '@ai-sdk/openai';
 import CodeInterpreter from '@e2b/code-interpreter';
 import FirecrawlApp from '@mendable/firecrawl-js';
 import { tavily } from '@tavily/core';
@@ -21,13 +22,17 @@ import {
 import Exa from 'exa-js';
 import { z } from 'zod';
 import MemoryClient from 'mem0ai';
+import { searchSearxng } from '@/lib/searxng';
+import { openaiCompatibleClient } from '@/lib/openai-compatible-client';
 
 const scira = customProvider({
     languageModels: {
-        'scira-default': xai('grok-2-1212'),
-        'scira-vision': xai('grok-2-vision-1212'),
-        'scira-cmd-a': cohere('command-a-03-2025'),
-        'scira-mistral': mistral('mistral-small-latest'),
+        // 'scira-gpt-4o-mini': openai("gpt-4o-mini"),
+        // 'scira-gpt-4o': openai("gpt-4o"),
+        'scira-gpt-4o-mini': openaiCompatibleClient.gpt4omini,
+        // 'scira-claude-3-7-sonnet': openaiCompatibleClient.claude,
+        'scira-gpt-4o': openaiCompatibleClient.gpt4o,
+        'scira-alpha': openaiCompatibleClient.alpha,
     }
 })
 
@@ -448,7 +453,8 @@ export async function POST(req: Request) {
                             }) => {
                                 const apiKey = serverEnv.TAVILY_API_KEY;
                                 const tvly = tavily({ apiKey });
-                                const includeImageDescriptions = true;
+                                const includeImageDescriptions = false;
+
 
                                 console.log('Queries:', queries);
                                 console.log('Max Results:', maxResults);
@@ -458,13 +464,14 @@ export async function POST(req: Request) {
 
                                 // Execute searches in parallel
                                 const searchPromises = queries.map(async (query, index) => {
+                                    // const data = await searchSearxng(query);
                                     const data = await tvly.search(query, {
                                         topic: topics[index] || topics[0] || 'general',
                                         days: topics[index] === 'news' ? 7 : undefined,
                                         maxResults: maxResults[index] || maxResults[0] || 10,
                                         searchDepth: searchDepth[index] || searchDepth[0] || 'basic',
                                         includeAnswer: true,
-                                        includeImages: true,
+                                        includeImages: false,
                                         includeImageDescriptions: includeImageDescriptions,
                                         excludeDomains: exclude_domains,
                                     });
@@ -478,7 +485,7 @@ export async function POST(req: Request) {
                                             total: queries.length,
                                             status: 'completed',
                                             resultsCount: data.results.length,
-                                            imagesCount: data.images.length
+                                            imagesCount: data?.images?.length ? data.images.length : 0,
                                         }
                                     });
 
@@ -489,38 +496,40 @@ export async function POST(req: Request) {
                                             title: obj.title,
                                             content: obj.content,
                                             raw_content: obj.raw_content,
-                                            published_date: topics[index] === 'news' ? obj.published_date : undefined,
+                                            published_date: topics[index] === 'news' ? obj.publishedDate : undefined,
                                         })),
-                                        images: includeImageDescriptions
-                                            ? await Promise.all(
-                                                deduplicateByDomainAndUrl(data.images).map(
-                                                    async ({ url, description }: { url: string; description?: string }) => {
-                                                        const sanitizedUrl = sanitizeUrl(url);
-                                                        const imageValidation = await isValidImageUrl(sanitizedUrl);
-                                                        return imageValidation.valid
-                                                            ? {
-                                                                url: imageValidation.redirectedUrl || sanitizedUrl,
-                                                                description: description ?? '',
-                                                            }
-                                                            : null;
-                                                    },
-                                                ),
-                                            ).then((results) =>
-                                                results.filter(
-                                                    (image): image is { url: string; description: string } =>
-                                                        image !== null &&
-                                                        typeof image === 'object' &&
-                                                        typeof image.description === 'string' &&
-                                                        image.description !== '',
-                                                ),
-                                            )
-                                            : await Promise.all(
-                                                deduplicateByDomainAndUrl(data.images).map(async ({ url }: { url: string }) => {
-                                                    const sanitizedUrl = sanitizeUrl(url);
-                                                    const imageValidation = await isValidImageUrl(sanitizedUrl);
-                                                    return imageValidation.valid ? (imageValidation.redirectedUrl || sanitizedUrl) : null;
-                                                }),
-                                            ).then((results) => results.filter((url) => url !== null) as string[]),
+                                        images:[]
+                                        // TODO: Handle images in Searxng(?)
+                                        // images: includeImageDescriptions
+                                        //     ? await Promise.all(
+                                        //         deduplicateByDomainAndUrl(data.images).map(
+                                        //             async ({ url, description }: { url: string; description?: string }) => {
+                                        //                 const sanitizedUrl = sanitizeUrl(url);
+                                        //                 const imageValidation = await isValidImageUrl(sanitizedUrl);
+                                        //                 return imageValidation.valid
+                                        //                     ? {
+                                        //                         url: imageValidation.redirectedUrl || sanitizedUrl,
+                                        //                         description: description ?? '',
+                                        //                     }
+                                        //                     : null;
+                                        //             },
+                                        //         ),
+                                        //     ).then((results) =>
+                                        //         results.filter(
+                                        //             (image): image is { url: string; description: string } =>
+                                        //                 image !== null &&
+                                        //                 typeof image === 'object' &&
+                                        //                 typeof image.description === 'string' &&
+                                        //                 image.description !== '',
+                                        //         ),
+                                        //     )
+                                        //     : await Promise.all(
+                                        //         deduplicateByDomainAndUrl(data.images).map(async ({ url }: { url: string }) => {
+                                        //             const sanitizedUrl = sanitizeUrl(url);
+                                        //             const imageValidation = await isValidImageUrl(sanitizedUrl);
+                                        //             return imageValidation.valid ? (imageValidation.redirectedUrl || sanitizedUrl) : null;
+                                        //         }),
+                                        //     ).then((results) => results.filter((url) => url !== null) as string[]),
                                     };
                                 });
 
@@ -1512,23 +1521,22 @@ export async function POST(req: Request) {
                                         overwrite: true
                                     }
                                 });
-
                                 // Now generate the research plan
                                 const { object: researchPlan } = await generateObject({
-                                    model: xai("grok-beta"),
+                                    model: openai("o3-mini"),
                                     temperature: 0,
                                     schema: z.object({
                                         search_queries: z.array(z.object({
                                             query: z.string(),
                                             rationale: z.string(),
                                             source: z.enum(['web', 'academic', 'x', 'all']),
-                                            priority: z.number().min(1).max(5)
-                                        })).max(12),
+                                            priority: z.number()
+                                        })),
                                         required_analyses: z.array(z.object({
                                             type: z.string(),
                                             description: z.string(),
-                                            importance: z.number().min(1).max(5)
-                                        })).max(8)
+                                            importance: z.number()
+                                        }))
                                     }),
                                     prompt: `Create a focused research plan for the topic: "${topic}". 
                                         
@@ -1541,9 +1549,6 @@ export async function POST(req: Request) {
                                         
                                         Available sources:
                                         - "web": General web search
-                                        - "academic": Academic papers and research
-                                        - "x": X/Twitter posts and discussions
-                                        - "all": Use all source types (web, academic, and X/Twitter)
                                         
                                         Do not use floating numbers, use whole numbers only in the priority field!!
                                         Do not keep the numbers too low or high, make them reasonable in between.
@@ -1557,18 +1562,24 @@ export async function POST(req: Request) {
                                 const generateStepIds = (plan: typeof researchPlan) => {
                                     // Generate an array of search steps.
                                     const searchSteps = plan.search_queries.flatMap((query, index) => {
-                                        if (query.source === 'all') {
-                                            return [
-                                                { id: `search-web-${index}`, type: 'web', query },
-                                                { id: `search-academic-${index}`, type: 'academic', query },
-                                                { id: `search-x-${index}`, type: 'x', query }
-                                            ];
-                                        }
-                                        if (query.source === 'x') {
-                                            return [{ id: `search-x-${index}`, type: 'x', query }];
-                                        }
-                                        const searchType = query.source === 'academic' ? 'academic' : 'web';
-                                        return [{ id: `search-${searchType}-${index}`, type: searchType, query }];
+                                        // if (query.source === 'all') {
+                                        //     return [
+                                        //         { id: `search-web-${index}`, type: 'web', query },
+                                        //         // { id: `search-academic-${index}`, type: 'academic', query },
+                                        //         // { id: `search-x-${index}`, type: 'x', query }
+                                        //     ];
+                                        // }
+                                        // if (query.source === 'x') {
+                                        //     return [{ id: `search-x-${index}`, type: 'x', query }];
+                                        // }
+                                        // const searchType = query.source === 'academic' ? 'academic' : 'web';
+                                        // return [{ id: `search-${searchType}-${index}`, type: searchType, query }];
+
+                                        return [
+                                            { id: `search-web-${index}`, type: 'web', query },
+                                            // { id: `search-academic-${index}`, type: 'academic', query },
+                                            // { id: `search-x-${index}`, type: 'x', query }
+                                        ];
                                     });
 
                                     // Generate an array of analysis steps.
@@ -1748,7 +1759,7 @@ export async function POST(req: Request) {
                                     });
 
                                     const { object: analysisResult } = await generateObject({
-                                        model: xai("grok-beta"),
+                                        model: openai("gpt-4o-mini"),
                                         temperature: 0.5,
                                         schema: z.object({
                                             findings: z.array(z.object({
@@ -1798,13 +1809,13 @@ export async function POST(req: Request) {
 
                                 // After all analyses are complete, analyze limitations and gaps
                                 const { object: gapAnalysis } = await generateObject({
-                                    model: xai("grok-beta"),
+                                    model: openai("o3-mini"),
                                     temperature: 0,
                                     schema: z.object({
                                         limitations: z.array(z.object({
                                             type: z.string(),
                                             description: z.string(),
-                                            severity: z.number().min(2).max(10),
+                                            severity: z.number(),
                                             potential_solutions: z.array(z.string())
                                         })),
                                         knowledge_gaps: z.array(z.object({
@@ -1815,7 +1826,7 @@ export async function POST(req: Request) {
                                         recommended_followup: z.array(z.object({
                                             action: z.string(),
                                             rationale: z.string(),
-                                            priority: z.number().min(2).max(10)
+                                            priority: z.number()
                                         }))
                                     }),
                                     prompt: `Analyze the research results and identify limitations, knowledge gaps, and recommended follow-up actions.
@@ -1876,20 +1887,20 @@ export async function POST(req: Request) {
                                         gap.additional_queries.map((query, idx) => {
                                             // For critical gaps, use 'all' sources for the first query
                                             // Distribute others across different source types for efficiency
-                                            const sourceTypes = ['web', 'academic', 'x', 'all'] as const;
-                                            let source: 'web' | 'academic' | 'x' | 'all';
+                                            // const sourceTypes = ['web', 'academic', 'x', 'all'] as const;
+                                            // let source: 'web' | 'academic' | 'x' | 'all';
 
                                             // Use 'all' for the first query of each gap, then rotate through specific sources
-                                            if (idx === 0) {
-                                                source = 'all';
-                                            } else {
-                                                source = sourceTypes[idx % (sourceTypes.length - 1)] as 'web' | 'academic' | 'x';
-                                            }
+                                            // if (idx === 0) {
+                                            //     source = 'all';
+                                            // } else {
+                                            //     source = sourceTypes[idx % (sourceTypes.length - 1)] as 'web' | 'academic' | 'x';
+                                            // }
 
                                             return {
                                                 query,
                                                 rationale: gap.reason,
-                                                source,
+                                                source: 'web',
                                                 priority: 3
                                             };
                                         })
@@ -2112,12 +2123,12 @@ export async function POST(req: Request) {
 
                                     // Perform final synthesis of all findings
                                     const { object: finalSynthesis } = await generateObject({
-                                        model: xai("grok-beta"),
+                                        model: openai("o3-mini"),
                                         temperature: 0,
                                         schema: z.object({
                                             key_findings: z.array(z.object({
                                                 finding: z.string(),
-                                                confidence: z.number().min(0).max(1),
+                                                confidence: z.number(),
                                                 supporting_evidence: z.array(z.string())
                                             })),
                                             remaining_uncertainties: z.array(z.string())
@@ -2204,7 +2215,7 @@ export async function POST(req: Request) {
                         const tool = tools[toolCall.toolName as keyof typeof tools];
 
                         const { object: repairedArgs } = await generateObject({
-                            model: scira.languageModel("scira-default"),
+                            model: scira.languageModel("scira-gpt-4o-mini"),
                             schema: tool.parameters,
                             prompt: [
                                 `The model tried to call the tool "${toolCall.toolName}"` +
@@ -2408,7 +2419,7 @@ export async function POST(req: Request) {
                         const tool = tools[toolCall.toolName as keyof typeof tools];
 
                         const { object: repairedArgs } = await generateObject({
-                            model: scira.languageModel("scira-default"),
+                            model: scira.languageModel("scira-gpt-4o-mini"),
                             schema: tool.parameters,
                             prompt: [
                                 `The model tried to call the tool "${toolCall.toolName}"` +

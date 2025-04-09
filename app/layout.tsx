@@ -81,7 +81,7 @@ export default function RootLayout({
             {children}
           </Providers>
         </NuqsAdapter>
-        <Analytics />
+        {/* <Analytics /> */}
       </body>
     </html>
   );

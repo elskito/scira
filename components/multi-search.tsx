@@ -102,7 +102,7 @@ const SearchLoadingState = ({
                     <AccordionContent className="pt-0 mt-0 border-0 overflow-hidden">
                         <div className="py-3 px-4 bg-white dark:bg-neutral-900 rounded-b-lg border border-t-0 border-neutral-200 dark:border-neutral-800">
                             {/* Query badges */}
-                            <div className="flex overflow-x-auto gap-1.5 mb-3 no-scrollbar pb-1">
+                            <div className="flex overflow-x-auto gap-1.5 mb-3 custom-scrollbar pb-1">
                                 {queries.map((query, i) => {
                                     const annotation = annotations.find(a => a.data.query === query);
                                     return (
@@ -157,7 +157,8 @@ const SearchLoadingState = ({
             </Accordion>
 
             {/* Images section skeleton */}
-            <div className="grid gap-1.5 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+            {/* TODO:  handle images in Searxng(?) */}
+            {/* <div className="grid gap-1.5 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
                 {[...Array(5)].map((_, i) => (
                     <div
                         key={i}
@@ -167,7 +168,7 @@ const SearchLoadingState = ({
                         )}
                     />
                 ))}
-            </div>
+            </div> */}
         </div>
     );
 };
@@ -521,7 +522,7 @@ const MultiSearch: React.FC<{
                     <AccordionContent className="pt-0 mt-0 border-0 overflow-hidden">
                         <div className="py-3 px-4 bg-white dark:bg-neutral-900 rounded-b-lg border border-t-0 border-neutral-200 dark:border-neutral-800">
                             {/* Query badges */}
-                            <div className="flex overflow-x-auto gap-1.5 mb-3 no-scrollbar pb-1">
+                            <div className="flex overflow-x-auto gap-1.5 mb-3 pb-1 custom-scrollbar">
                                 {result.searches.map((search, i) => (
                                     <Badge
                                         key={i}
@@ -535,7 +536,7 @@ const MultiSearch: React.FC<{
                             </div>
 
                             {/* Horizontal scrolling results */}
-                            <div className="flex overflow-x-auto gap-2 no-scrollbar pb-1 snap-x snap-mandatory scroll-pl-4">
+                            <div className="flex overflow-x-auto gap-2 pb-1 snap-x snap-mandatory scroll-pl-4 custom-scrollbar">
                                 {result.searches.map(search =>
                                     search.results.map((result, resultIndex) => (
                                         <motion.div
