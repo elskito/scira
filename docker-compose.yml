@@ -10,5 +10,17 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - HOSTNAME=0.0.0.0
     restart: unless-stopped
+    networks:
+      - scira-network
+
+  searxng:
+    image: docker.io/searxng/searxng:latest
+    volumes:
+      - ./searxng:/etc/searxng:rw
+    restart: unless-stopped
+    networks:
+      - scira-network
+
+networks:
+  scira-network:

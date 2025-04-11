@@ -6,7 +6,7 @@ export const searchSearxng = async (
 ) => {
   const searxngURL = serverEnv.SEARXNG_URL;
 
-  const url = new URL(`${searxngURL}/search?format=json&categories=general`);
+  const url = new URL(`${searxngURL}/search?format=json`);
 
   url.searchParams.append('q', query);
 

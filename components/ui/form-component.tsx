@@ -48,36 +48,10 @@ const XAIIcon = ({ className }: { className?: string }) => (
     </svg>
 );
 
-const MistralIcon = ({ className }: { className?: string }) => (
-    <svg width="16" height="14.727272727272728" viewBox="0 0 176 162" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-        <rect x="15" y="1" width="32" height="32" fill="#FFCD00" stroke="#636363" strokeOpacity="0.2" strokeWidth="0.5"></rect>
-        <rect x="143" y="1" width="32" height="32" fill="#FFCD00" stroke="#636363" strokeOpacity="0.2" strokeWidth="0.5"></rect>
-        <rect x="15" y="33" width="32" height="32" fill="#FFA400" stroke="#636363" strokeOpacity="0.2" strokeWidth="0.5"></rect>
-        <rect x="47" y="33" width="32" height="32" fill="#FFA400" stroke="#636363" strokeOpacity="0.2" strokeWidth="0.5"></rect>
-        <rect x="111" y="33" width="32" height="32" fill="#FFA400" stroke="#636363" strokeOpacity="0.2" strokeWidth="0.5"></rect>
-        <rect x="143" y="33" width="32" height="32" fill="#FFA400" stroke="#636363" strokeOpacity="0.2" strokeWidth="0.5"></rect>
-        <rect x="15" y="65" width="32" height="32" fill="#FF7100" stroke="#636363" strokeOpacity="0.2" strokeWidth="0.5"></rect>
-        <rect x="47" y="65" width="32" height="32" fill="#FF7100" stroke="#636363" strokeOpacity="0.2" strokeWidth="0.5"></rect>
-        <rect x="79" y="65" width="32" height="32" fill="#FF7100" stroke="#636363" strokeOpacity="0.2" strokeWidth="0.5"></rect>
-        <rect x="111" y="65" width="32" height="32" fill="#FF7100" stroke="#636363" strokeOpacity="0.2" strokeWidth="0.5"></rect>
-        <rect x="143" y="65" width="32" height="32" fill="#FF7100" stroke="#636363" strokeOpacity="0.2" strokeWidth="0.5"></rect>
-        <rect x="15" y="97" width="32" height="32" fill="#FF4902" stroke="#636363" strokeOpacity="0.2" strokeWidth="0.5"></rect>
-        <rect x="79" y="97" width="32" height="32" fill="#FF4902" stroke="#636363" strokeOpacity="0.2" strokeWidth="0.5"></rect>
-        <rect x="143" y="97" width="32" height="32" fill="#FF4902" stroke="#636363" strokeOpacity="0.2" strokeWidth="0.5"></rect>
-        <rect x="15" y="129" width="32" height="32" fill="#FF0006" stroke="#636363" strokeOpacity="0.2" strokeWidth="0.5"></rect>
-        <rect x="143" y="129" width="32" height="32" fill="#FF0006" stroke="#636363" strokeOpacity="0.2" strokeWidth="0.5"></rect>
-        <rect y="1" width="16" height="160" fill="black"></rect>
-        <rect x="63" y="97" width="16" height="32" fill="black"></rect>
-        <rect x="95" y="33" width="16" height="32" fill="black"></rect>
-        <rect x="127" y="1" width="16" height="32" fill="black"></rect>
-        <rect x="127" y="97" width="16" height="64" fill="black"></rect>
-    </svg>
-);
 
 const models = [
     { value: "scira-gpt-4o-mini", label: "GPT-4o-mini", icon: XAIIcon, iconClass: "!text-neutral-300", description: "GPT-4o-mini model", color: "glossyblack", vision: false, experimental: false, category: "Stable" },
     { value: "scira-gpt-4o", label: "GPT-4o", icon: XAIIcon, iconClass: "!text-neutral-300", description: "GPT-4o model", color: "glossyblack", vision: false, experimental: false, category: "Stable" },
-    // { value: "scira-claude-3-7-sonnet", label: "Claude 3.7 Sonnet", icon: XAIIcon, iconClass: "!text-neutral-300", description: "Claude 3.5 Sonnet model", color: "glossyblack", vision: false, experimental: false, category: "Stable" },
     { value: "scira-alpha", label: "Quasar Alpha", icon: XAIIcon, iconClass: "!text-neutral-300", description: "Quasar Alpha model", color: "glossyblack", vision: false, experimental: false, category: "Stable" },
 ];
 
@@ -86,30 +60,31 @@ const getColorClasses = (color: string, isSelected: boolean = false) => {
     const selectedClasses = isSelected ? "!bg-opacity-100 dark:!bg-opacity-100" : "";
 
     switch (color) {
-        case 'glossyblack':
+        case 'black':
             return isSelected
-                ? `${baseClasses} ${selectedClasses} !bg-[#4D4D4D] dark:!bg-[#3A3A3A] !text-white hover:!bg-[#3D3D3D] dark:hover:!bg-[#434343] !border-[#4D4D4D] dark:!border-[#3A3A3A] !ring-[#4D4D4D] dark:!ring-[#3A3A3A] focus:!ring-[#4D4D4D] dark:focus:!ring-[#3A3A3A]`
-                : `${baseClasses} !text-[#4D4D4D] dark:!text-[#E5E5E5] hover:!bg-[#4D4D4D] hover:!text-white dark:hover:!bg-[#3A3A3A] dark:hover:!text-white`;
-        case 'steel':
+                ? `${baseClasses} ${selectedClasses} !bg-[#0F0F0F] dark:!bg-[#0F0F0F] !text-white hover:!bg-[#0F0F0F] dark:hover:!bg-[#0F0F0F] !border-[#0F0F0F] dark:!border-[#0F0F0F]`
+                : `${baseClasses} !text-[#0F0F0F] dark:!text-[#E5E5E5] hover:!bg-[#0F0F0F] hover:!text-white dark:hover:!bg-[#0F0F0F] dark:hover:!text-white`;
+        case 'gray':
             return isSelected
-                ? `${baseClasses} ${selectedClasses} !bg-[#4B82B8] dark:!bg-[#4A7CAD] !text-white hover:!bg-[#3B6C9D] dark:hover:!bg-[#3A6C9D] !border-[#4B82B8] dark:!border-[#4A7CAD] !ring-[#4B82B8] dark:!ring-[#4A7CAD] focus:!ring-[#4B82B8] dark:focus:!ring-[#4A7CAD]`
-                : `${baseClasses} !text-[#4B82B8] dark:!text-[#A7C5E2] hover:!bg-[#4B82B8] hover:!text-white dark:hover:!bg-[#4A7CAD] dark:hover:!text-white`;
-        case 'offgray':
+                ? `${baseClasses} ${selectedClasses} !bg-[#4E4E4E] dark:!bg-[#4E4E4E] !text-white hover:!bg-[#3D3D3D] dark:hover:!bg-[#3D3D3D] !border-[#4E4E4E] dark:!border-[#4E4E4E]`
+                : `${baseClasses} !text-[#4E4E4E] dark:!text-[#E5E5E5] hover:!bg-[#4E4E4E] hover:!text-white dark:hover:!bg-[#4E4E4E] dark:hover:!text-white`;
+        case 'indigo':
             return isSelected
-                ? `${baseClasses} ${selectedClasses} !bg-[#505050] dark:!bg-[#505050] !text-white hover:!bg-[#404040] dark:hover:!bg-[#404040] !border-[#505050] dark:!border-[#505050] !ring-[#505050] dark:!ring-[#505050] focus:!ring-[#505050] dark:focus:!ring-[#505050]`
-                : `${baseClasses} !text-[#505050] dark:!text-[#D0D0D0] hover:!bg-[#505050] hover:!text-white dark:hover:!bg-[#505050] dark:hover:!text-white`;
+                ? `${baseClasses} ${selectedClasses} !bg-[#4F46E5] dark:!bg-[#4F46E5] !text-white hover:!bg-[#4338CA] dark:hover:!bg-[#4338CA] !border-[#4F46E5] dark:!border-[#4F46E5]`
+                : `${baseClasses} !text-[#4F46E5] dark:!text-[#6366F1] hover:!bg-[#4F46E5] hover:!text-white dark:hover:!bg-[#4F46E5] dark:hover:!text-white`;
+        case 'violet':
+            return isSelected
+                ? `${baseClasses} ${selectedClasses} !bg-[#8B5CF6] dark:!bg-[#8B5CF6] !text-white hover:!bg-[#7C3AED] dark:hover:!bg-[#7C3AED] !border-[#8B5CF6] dark:!border-[#8B5CF6]`
+                : `${baseClasses} !text-[#8B5CF6] dark:!text-[#A78BFA] hover:!bg-[#8B5CF6] hover:!text-white dark:hover:!bg-[#8B5CF6] dark:hover:!text-white`;
         case 'purple':
             return isSelected
-                ? `${baseClasses} ${selectedClasses} !bg-[#6366F1] dark:!bg-[#5B54E5] !text-white hover:!bg-[#4F46E5] dark:hover:!bg-[#4B44D5] !border-[#6366F1] dark:!border-[#5B54E5] !ring-[#6366F1] dark:!ring-[#5B54E5] focus:!ring-[#6366F1] dark:focus:!ring-[#5B54E5]`
-                : `${baseClasses} !text-[#6366F1] dark:!text-[#A5A0FF] hover:!bg-[#6366F1] hover:!text-white dark:hover:!bg-[#5B54E5] dark:hover:!text-white`;
-        case 'sapphire':
+                ? `${baseClasses} ${selectedClasses} !bg-[#5E5ADB] dark:!bg-[#5E5ADB] !text-white hover:!bg-[#4D49C9] dark:hover:!bg-[#4D49C9] !border-[#5E5ADB] dark:!border-[#5E5ADB]`
+                : `${baseClasses} !text-[#5E5ADB] dark:!text-[#5E5ADB] hover:!bg-[#5E5ADB] hover:!text-white dark:hover:!bg-[#5E5ADB] dark:hover:!text-white`;
+        case 'alpha':
+            // make it classic optimus prime like 
             return isSelected
-                ? `${baseClasses} ${selectedClasses} !bg-[#1E3A5C] dark:!bg-[#0D2A4C] !text-white hover:!bg-[#0D2A4C] dark:hover:!bg-[#001A3C] !border-[#1E3A5C] dark:!border-[#0D2A4C] !ring-[#1E3A5C] dark:!ring-[#0D2A4C] focus:!ring-[#1E3A5C] dark:focus:!ring-[#0D2A4C]`
-                : `${baseClasses} !text-[#1E3A5C] dark:!text-[#4D8BCC] hover:!bg-[#1E3A5C] hover:!text-white dark:hover:!bg-[#0D2A4C] dark:hover:!text-white`;
-        case 'orange':
-            return isSelected
-                ? `${baseClasses} ${selectedClasses} !bg-[#E67E22] dark:!bg-[#D35400] !text-white hover:!bg-[#D35400] dark:hover:!bg-[#C44E00] !border-[#E67E22] dark:!border-[#D35400] !ring-[#E67E22] dark:!ring-[#D35400] focus:!ring-[#E67E22] dark:focus:!ring-[#D35400]`
-                : `${baseClasses} !text-[#E67E22] dark:!text-[#F39C12] hover:!bg-[#E67E22] hover:!text-white dark:hover:!bg-[#D35400] dark:hover:!text-white`;
+                ? `${baseClasses} ${selectedClasses} !bg-gradient-to-r !from-[#0b3d91] !to-[#d01012] dark:!bg-gradient-to-r dark:!from-[#0b3d91] dark:!to-[#d01012] !text-white hover:!opacity-90 !border-[#0b3d91] dark:!border-[#0b3d91]`
+                : `${baseClasses} !text-[#d01012] dark:!text-[#3f83f8] hover:!bg-gradient-to-r hover:!from-[#0b3d91] hover:!to-[#d01012] hover:!text-white dark:hover:!text-white`;
         default:
             return isSelected
                 ? `${baseClasses} ${selectedClasses} !bg-neutral-500 dark:!bg-neutral-700 !text-white hover:!bg-neutral-600 dark:hover:!bg-neutral-800 !border-neutral-500 dark:!border-neutral-700`
@@ -204,15 +179,16 @@ const ModelSwitcher: React.FC<ModelSwitcherProps> = ({ selectedModel, setSelecte
                 </span>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-                className="w-[220px] p-1 !font-sans rounded-lg bg-white dark:bg-neutral-900 sm:ml-4 !mt-1.5 sm:m-auto !z-[52] shadow-lg border border-neutral-200 dark:border-neutral-800"
+                className="w-[220px] p-1 !font-sans rounded-lg bg-white dark:bg-neutral-900 !mt-1.5 !z-[52] shadow-lg border border-neutral-200 dark:border-neutral-800 max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-300 dark:scrollbar-thumb-neutral-700 scrollbar-track-transparent"
                 align="start"
+                side="bottom"
                 sideOffset={8}
             >
                 {Object.entries(groupedModels).map(([category, categoryModels], categoryIndex) => (
                     <div key={category} className={cn(
                         categoryIndex > 0 && "mt-1"
                     )}>
-                        <div className="px-2 py-1.5 text-[11px] font-medium text-neutral-500 dark:text-neutral-400 select-none">
+                        <div className="px-2 py-1.5 text-[11px] font-medium text-neutral-500 dark:text-neutral-400 select-none sticky top-0 bg-white dark:bg-neutral-900 z-10">
                             {category}
                         </div>
                         <div className="space-y-0.5">
@@ -537,16 +513,18 @@ const SwitchNotification: React.FC<SwitchNotificationProps> = ({
     // Get background color for model notifications only
     const getModelBgClass = (color: string) => {
         switch (color) {
-            case 'glossyblack':
-                return 'bg-[#4D4D4D] dark:bg-[#3A3A3A] border-[#4D4D4D] dark:border-[#3A3A3A]';
-            case 'steel':
-                return 'bg-[#4B82B8] dark:bg-[#4A7CAD] border-[#4B82B8] dark:border-[#4A7CAD]';
+            case 'black':
+                return 'bg-[#0F0F0F] dark:bg-[#0F0F0F] border-[#0F0F0F] dark:border-[#0F0F0F]';
+            case 'gray':
+                return 'bg-[#4E4E4E] dark:bg-[#4E4E4E] border-[#4E4E4E] dark:border-[#4E4E4E]';
+            case 'indigo':
+                return 'bg-[#4F46E5] dark:bg-[#4F46E5] border-[#4F46E5] dark:border-[#4F46E5]';
+            case 'violet':
+                return 'bg-[#8B5CF6] dark:bg-[#8B5CF6] border-[#8B5CF6] dark:border-[#8B5CF6]';
             case 'purple':
-                return 'bg-[#6366F1] dark:bg-[#5B54E5] border-[#6366F1] dark:border-[#5B54E5]';
-            case 'orange':
-                return 'bg-[#E67E22] dark:bg-[#D35400] border-[#E67E22] dark:border-[#D35400]';
-            case 'sapphire':
-                return 'bg-[#4D6BFE] dark:bg-[#4D6BFE] border-[#4D6BFE] dark:border-[#4D6BFE]';
+                return 'bg-[#5E5ADB] dark:bg-[#5E5ADB] border-[#5E5ADB] dark:border-[#5E5ADB]';
+            case 'alpha':
+                return 'bg-gradient-to-r from-[#0b3d91] to-[#d01012] dark:from-[#0b3d91] dark:to-[#d01012] border-[#0b3d91] dark:border-[#0b3d91]';
             default:
                 return 'bg-neutral-100 dark:bg-neutral-900 border-neutral-300 dark:border-neutral-700';
         }
@@ -769,6 +747,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
     
     const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
     const isMounted = useRef(true);
+    const isCompositionActive = useRef(false)
     const { width } = useWindowSize();
     const postSubmitFileInputRef = useRef<HTMLInputElement>(null);
     const [isFocused, setIsFocused] = useState(true);
@@ -1011,7 +990,9 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 showSwitchNotification(
                     modelData.label,
                     'Vision model enabled - you can now attach images',
-                    <Image className="size-4" />,
+                    typeof modelData.icon === 'string' ?
+                        <img src={modelData.icon} alt={modelData.label} className="size-4 object-contain" /> :
+                        <modelData.icon className="size-4" />,
                     modelData.color,
                     'model'  // Explicitly mark as model notification
                 );
@@ -1061,7 +1042,9 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 showSwitchNotification(
                     modelData.label,
                     'Vision model enabled - you can now attach images',
-                    <Image className="size-4" />,
+                    typeof modelData.icon === 'string' ?
+                        <img src={modelData.icon} alt={modelData.label} className="size-4 object-contain" /> :
+                        <modelData.icon className="size-4" />,
                     modelData.color,
                     'model'  // Explicitly mark as model notification
                 );
@@ -1159,7 +1142,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
     }, [attachments.length, status, fileInputRef]);
 
     const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (event.key === "Enter" && !event.shiftKey) {
+        if (event.key === "Enter" && !event.shiftKey && !isCompositionActive.current) {
             event.preventDefault();
             if (status === 'submitted' || status === 'streaming') {
                 toast.error("Please wait for the response to complete!");
@@ -1290,6 +1273,8 @@ const FormComponent: React.FC<FormComponentProps> = ({
                             }}
                             rows={1}
                             autoFocus={width ? width > 768 : true}
+                            onCompositionStart={() => isCompositionActive.current = true}
+                            onCompositionEnd={() => isCompositionActive.current = false}
                             onKeyDown={handleKeyDown}
                             onPaste={handlePaste}
                         />
