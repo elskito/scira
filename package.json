@@ -20,6 +20,7 @@
     "@e2b/code-interpreter": "^1.1.1",
     "@foobar404/wave": "^2.0.5",
     "@mendable/firecrawl-js": "^1.24.0",
+    "@openrouter/ai-sdk-provider": "^0.4.5",
     "@phosphor-icons/react": "^2.1.7",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-collapsible": "^1.1.1",

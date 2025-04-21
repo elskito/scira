@@ -2,7 +2,6 @@
 import { getGroupConfig } from '@/app/actions';
 import { serverEnv } from '@/env/server';
 import { xai } from '@ai-sdk/xai';
-import { anthropic } from "@ai-sdk/anthropic";
 import { openrouter } from "@openrouter/ai-sdk-provider";
 import { openai } from '@ai-sdk/openai';
 import CodeInterpreter from '@e2b/code-interpreter';
@@ -61,7 +60,6 @@ const scira = customProvider({
         'scira-default': xai('grok-3-fast-beta'),
         'scira-grok-3-mini': xai('grok-3-mini-fast-beta'),
         'scira-vision': xai('grok-2-vision-1212'),
-        'scira-claude': anthropic('claude-3-7-sonnet-20250219'),
         'scira-optimus': openrouter('openrouter/optimus-alpha'),
         'scira-gpt-4.1': openrouter('openai/gpt-4.1'),
         'scira-gpt-4.1-mini': openrouter('openai/gpt-4.1-mini'),

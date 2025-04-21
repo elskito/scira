@@ -50,8 +50,8 @@ const XAIIcon = ({ className }: { className?: string }) => (
 
 
 const models = [
-    { value: "scira-gpt-4o-mini", label: "GPT-4o-mini", icon: XAIIcon, iconClass: "!text-neutral-300", description: "GPT-4o-mini model", color: "glossyblack", vision: false, experimental: false, category: "Stable" },
-    { value: "scira-gpt-4o", label: "GPT-4o", icon: XAIIcon, iconClass: "!text-neutral-300", description: "GPT-4o model", color: "glossyblack", vision: false, experimental: false, category: "Stable" },
+    { value: "scira-gpt-4.1-mini", label: "GPT-4o-mini", icon: XAIIcon, iconClass: "!text-neutral-300", description: "GPT-4o-mini model", color: "glossyblack", vision: false, experimental: false, category: "Stable" },
+    { value: "scira-gpt-4.1", label: "GPT-4o", icon: XAIIcon, iconClass: "!text-neutral-300", description: "GPT-4o model", color: "glossyblack", vision: false, experimental: false, category: "Stable" },
     { value: "scira-alpha", label: "Quasar Alpha", icon: XAIIcon, iconClass: "!text-neutral-300", description: "Quasar Alpha model", color: "glossyblack", vision: false, experimental: false, category: "Stable" },
 ];
 
