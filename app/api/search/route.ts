@@ -29,8 +29,8 @@ const scira = customProvider({
         'scira-vision': xai('grok-2-vision-1212'),
         'scira-claude': anthropic('claude-3-7-sonnet-20250219'),
         'scira-optimus': openrouter('openrouter/optimus-alpha'),
-        'scira-gpt-4o': openrouter('openai/gpt-4o-2024-11-20'),
-        'scira-gpt-4o-mini': openrouter('openai/gpt-4o-mini'),
+        'scira-gpt-4.1': openrouter('openai/gpt-4.1'),
+        'scira-gpt-4.1-mini': openrouter('openai/gpt-4.1-mini'),
         'scira-alpha': openrouter('openrouter/optimus-alpha'),
     }
 })

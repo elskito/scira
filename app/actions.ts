@@ -13,7 +13,7 @@ export async function suggestQuestions(history: any[]) {
   console.log(history);
 
   const { object } = await generateObject({
-    model: openrouter('openai/gpt-4o-mini'),
+    model: openrouter('openai/gpt-4.1-nano'),
     temperature: 0,
     maxTokens: 300,
     topP: 0.3,
