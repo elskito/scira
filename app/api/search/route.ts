@@ -17,10 +17,44 @@ import {
     customProvider,
     generateObject,
     NoSuchToolError,
+    extractReasoningMiddleware,
+    wrapLanguageModel
 } from 'ai';
 import Exa from 'exa-js';
 import { z } from 'zod';
 import MemoryClient from 'mem0ai';
+
+// Add currency symbol mapping at the top of the file
+const CURRENCY_SYMBOLS = {
+    USD: '$',   // US Dollar
+    EUR: '€',   // Euro
+    GBP: '£',   // British Pound
+    JPY: '¥',   // Japanese Yen
+    CNY: '¥',   // Chinese Yuan
+    INR: '₹',   // Indian Rupee
+    RUB: '₽',   // Russian Ruble
+    KRW: '₩',   // South Korean Won
+    BTC: '₿',   // Bitcoin
+    THB: '฿',   // Thai Baht
+    BRL: 'R$',  // Brazilian Real
+    PHP: '₱',   // Philippine Peso
+    ILS: '₪',   // Israeli Shekel
+    TRY: '₺',   // Turkish Lira
+    NGN: '₦',   // Nigerian Naira
+    VND: '₫',   // Vietnamese Dong
+    ARS: '$',   // Argentine Peso
+    ZAR: 'R',   // South African Rand
+    AUD: 'A$',  // Australian Dollar
+    CAD: 'C$',  // Canadian Dollar
+    SGD: 'S$',  // Singapore Dollar
+    HKD: 'HK$', // Hong Kong Dollar
+    NZD: 'NZ$', // New Zealand Dollar
+    MXN: 'Mex$' // Mexican Peso
+} as const;
+
+const middleware = extractReasoningMiddleware({
+    tagName: 'think',
+});
 
 const scira = customProvider({
     languageModels: {
@@ -258,11 +292,34 @@ const deduplicateByDomainAndUrl = <T extends { url: string }>(items: T[]): T[] =
     });
 };
 
+// Initialize Exa client
+const exa = new Exa(serverEnv.EXA_API_KEY);
+
+// Add interface for Exa search results
+interface ExaResult {
+    title: string;
+    url: string;
+    publishedDate?: string;
+    author?: string;
+    score?: number;
+    id: string;
+    image?: string;
+    favicon?: string;
+    text: string;
+    highlights?: string[];
+    highlightScores?: number[];
+    summary?: string;
+    subpages?: ExaResult[];
+    extras?: {
+        links: any[];
+    };
+}
+
 // Modify the POST function to use the new handler
 export async function POST(req: Request) {
     const { messages, model, group, user_id, timezone } = await req.json();
     const { tools: activeTools, instructions } = await getGroupConfig(group);
-    
+
     console.log("--------------------------------");
     console.log("Messages: ", messages);
     console.log("--------------------------------");
@@ -275,53 +332,267 @@ export async function POST(req: Request) {
             const result = streamText({
                 model: scira.languageModel(model),
                 messages: convertToCoreMessages(messages),
-                temperature: 0,
+                // temperature: model === 'scira-o4-mini' ? 1 : 0,
+                ...(model !== 'scira-o4-mini' ? {
+                    temperature: 0,
+                } : {}),
                 maxSteps: 5,
                 experimental_activeTools: [...activeTools],
                 system: instructions,
                 toolChoice: 'auto',
                 experimental_transform: smoothStream({
-                    chunking: 'line',
-                    delayInMs: 30,
+                    chunking: 'word',
+                    delayInMs: 15,
                 }),
                 providerOptions: {
                     scira: {
                         ...(model === 'scira-grok-3-mini' ?
                             {
-                                reasoning_effort: 'high'
+                                reasoningEffort: 'high',
                             }
                             : {}
                         ),
-                        ...(model === 'scira-claude' ? {
-                            thinking: {
-                                type: group === "chat" ? "enabled" : "disabled",
-                                budgetTokens: 12000
+                        ...(model === 'scira-o4-mini' ? {
+                            reasoningEffort: 'medium',
+                            reasoning: {
+                                effort: 'medium',
+                                summary: "concise"
                             }
                         } : {}),
-                    }
-                },
-                headers: {
-                    "HTTP-Referer": "scira.ai",
-                    "X-Title": "scira",
+                    },
+                    openai: {
+                        ...(model === 'scira-o4-mini' ? {
+                            reasoningEffort: 'medium',
+                            reasoning: {
+                                effort: 'medium',
+                                summary: "concise"
+                            },
+                        } : {})
+                    },
+                    xai: {
+                        ...(model === 'scira-grok-3-mini' ? {
+                            reasoningEffort: 'high',
+                        } : {}),
+                    },
                 },
                 tools: {
                     stock_chart: tool({
-                        description: 'Write and execute Python code to find stock data and generate a stock chart.',
+                        description: 'Get stock data and news for given stock symbols.',
                         parameters: z.object({
                             title: z.string().describe('The title of the chart.'),
-                            code: z.string().describe('The Python code with matplotlib line chart and yfinance to execute.'),
+                            news_queries: z.array(z.string()).describe('The news queries to search for.'),
                             icon: z
                                 .enum(['stock', 'date', 'calculation', 'default'])
                                 .describe('The icon to display for the chart.'),
                             stock_symbols: z.array(z.string()).describe('The stock symbols to display for the chart.'),
+                            currency_symbols: z.array(z.string()).describe('The currency symbols for each stock/asset in the chart. Available symbols: ' + Object.keys(CURRENCY_SYMBOLS).join(', ') + '. Defaults to USD if not provided.'),
                             interval: z.enum(['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max']).describe('The interval of the chart. default is 1y.'),
                         }),
-                        execute: async ({ code, title, icon, stock_symbols, interval }: { code: string; title: string; icon: string; stock_symbols: string[]; interval: string }) => {
-                            console.log('Code:', code);
+                        execute: async ({ title, icon, stock_symbols, currency_symbols, interval, news_queries }: { title: string; icon: string; stock_symbols: string[]; currency_symbols?: string[]; interval: string; news_queries: string[] }) => {
                             console.log('Title:', title);
                             console.log('Icon:', icon);
                             console.log('Stock symbols:', stock_symbols);
+                            console.log('Currency symbols:', currency_symbols);
                             console.log('Interval:', interval);
+                            console.log('News queries:', news_queries);
+
+                            // Format currency symbols with actual symbols
+                            const formattedCurrencySymbols = (currency_symbols || stock_symbols.map(() => 'USD')).map(currency => {
+                                const symbol = CURRENCY_SYMBOLS[currency as keyof typeof CURRENCY_SYMBOLS];
+                                return symbol || currency; // Fallback to currency code if symbol not found
+                            });
+
+                            interface NewsResult {
+                                title: string;
+                                url: string;
+                                content: string;
+                                published_date?: string;
+                                category: string;
+                                query: string;
+                            }
+
+                            interface NewsGroup {
+                                query: string;
+                                topic: string;
+                                results: NewsResult[];
+                            }
+
+                            let news_results: NewsGroup[] = [];
+
+                            const tvly = tavily({ apiKey: serverEnv.TAVILY_API_KEY });
+
+                            // Gather all news search promises to execute in parallel
+                            const searchPromises = [];
+                            for (const query of news_queries) {
+                                // Add finance and news topic searches for each query
+                                searchPromises.push({
+                                    query,
+                                    topic: 'finance',
+                                    promise: tvly.search(query, {
+                                        topic: 'finance',
+                                        days: 7,
+                                        maxResults: 3,
+                                        searchDepth: 'advanced',
+                                    })
+                                });
+
+                                searchPromises.push({
+                                    query,
+                                    topic: 'news',
+                                    promise: tvly.search(query, {
+                                        topic: 'news',
+                                        days: 7,
+                                        maxResults: 3,
+                                        searchDepth: 'advanced',
+                                    })
+                                });
+                            }
+
+                            // Execute all searches in parallel
+                            const searchResults = await Promise.all(
+                                searchPromises.map(({ promise }) => promise.catch(err => ({
+                                    results: [],
+                                    error: err.message
+                                })))
+                            );
+
+                            // Process results and deduplicate
+                            const urlSet = new Set();
+                            searchPromises.forEach(({ query, topic }, index) => {
+                                const result = searchResults[index];
+                                if (!result.results) return;
+
+                                const processedResults = result.results
+                                    .filter(item => {
+                                        // Skip if we've already included this URL
+                                        if (urlSet.has(item.url)) return false;
+                                        urlSet.add(item.url);
+                                        return true;
+                                    })
+                                    .map(item => ({
+                                        title: item.title,
+                                        url: item.url,
+                                        content: item.content.slice(0, 30000),
+                                        published_date: item.publishedDate,
+                                        category: topic,
+                                        query: query
+                                    }));
+
+                                if (processedResults.length > 0) {
+                                    news_results.push({
+                                        query,
+                                        topic,
+                                        results: processedResults
+                                    });
+                                }
+                            });
+
+                            // Perform Exa search for financial reports
+                            const exaResults: NewsGroup[] = [];
+                            try {
+                                // Run Exa search for each stock symbol
+                                const exaSearchPromises = stock_symbols.map(symbol =>
+                                    exa.searchAndContents(
+                                        `${symbol} financial report analysis`,
+                                        {
+                                            text: true,
+                                            category: "financial report",
+                                            livecrawl: "always",
+                                            type: "auto",
+                                            numResults: 10,
+                                            summary: {
+                                                query: "all important information relevent to the important for investors"
+                                            }
+                                        }
+                                    ).catch(error => {
+                                        console.error(`Exa search error for ${symbol}:`, error);
+                                        return { results: [] };
+                                    })
+                                );
+
+                                const exaSearchResults = await Promise.all(exaSearchPromises);
+
+                                // Process Exa results
+                                const exaUrlSet = new Set();
+                                exaSearchResults.forEach((result, index) => {
+                                    if (!result.results || result.results.length === 0) return;
+
+                                    const stockSymbol = stock_symbols[index];
+                                    const processedResults = result.results
+                                        .filter(item => {
+                                            if (exaUrlSet.has(item.url)) return false;
+                                            exaUrlSet.add(item.url);
+                                            return true;
+                                        })
+                                        .map(item => ({
+                                            title: item.title || "",
+                                            url: item.url,
+                                            content: item.summary || "",
+                                            published_date: item.publishedDate,
+                                            category: "financial",
+                                            query: stockSymbol
+                                        }));
+
+                                    if (processedResults.length > 0) {
+                                        exaResults.push({
+                                            query: stockSymbol,
+                                            topic: "financial",
+                                            results: processedResults
+                                        });
+                                    }
+                                });
+
+                                // Complete missing titles for financial reports
+                                for (const group of exaResults) {
+                                    for (let i = 0; i < group.results.length; i++) {
+                                        const result = group.results[i];
+                                        if (!result.title || result.title.trim() === "") {
+                                            try {
+                                                const { object } = await generateObject({
+                                                    model: openai.chat("gpt-4.1-nano"),
+                                                    prompt: `Complete the following financial report with an appropriate title. The report is about ${group.query} and contains this content: ${result.content.substring(0, 500)}...`,
+                                                    schema: z.object({
+                                                        title: z.string().describe("A descriptive title for the financial report")
+                                                    }),
+                                                });
+                                                group.results[i].title = object.title;
+                                            } catch (error) {
+                                                console.error(`Error generating title for ${group.query} report:`, error);
+                                                group.results[i].title = `${group.query} Financial Report`;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // Merge Exa results with news results
+                                news_results = [...news_results, ...exaResults];
+                            } catch (error) {
+                                console.error("Error fetching Exa financial reports:", error);
+                            }
+
+                            const code = `
+import yfinance as yf
+import matplotlib.pyplot as plt
+
+${stock_symbols.map(symbol =>
+                                `${symbol.toLowerCase().replace('.', '')} = yf.download('${symbol}', period='${interval}', interval='1d')`).join('\n')}
+
+# Create the plot
+plt.figure(figsize=(10, 6))
+${stock_symbols.map(symbol => `
+plt.plot(${symbol.toLowerCase().replace('.', '')}.index, ${symbol.toLowerCase().replace('.', '')}['Close'], label='${symbol} ${formattedCurrencySymbols[stock_symbols.indexOf(symbol)]}', color='blue')
+`).join('\n')}
+
+# Customize the chart
+plt.title('${title}')
+plt.xlabel('Date')
+plt.ylabel('Closing Price')
+plt.legend()
+plt.grid(True)
+plt.show()`
+
+                            console.log('Code:', code);
+
                             const sandbox = await CodeInterpreter.create(serverEnv.SANDBOX_TEMPLATE_ID!);
                             const execution = await sandbox.runCode(code);
                             let message = '';
@@ -365,6 +636,8 @@ export async function POST(req: Request) {
                             return {
                                 message: message.trim(),
                                 chart: execution.results[0].chart ?? '',
+                                currency_symbols: formattedCurrencySymbols,
+                                news_results: news_results
                             };
                         },
                     }),
@@ -373,9 +646,9 @@ export async function POST(req: Request) {
                         parameters: z.object({
                             from: z.string().describe('The source currency code.'),
                             to: z.string().describe('The target currency code.'),
-                            amount: z.number().default(1).describe('The amount to convert.'),
+                            amount: z.number().describe('The amount to convert. Default is 1.'),
                         }),
-                        execute: async ({ from, to }: { from: string; to: string }) => {
+                        execute: async ({ from, to, amount }: { from: string; to: string; amount: number }) => {
                             const code = `
   import yfinance as yf
   from_currency = '${from}'
@@ -383,7 +656,7 @@ export async function POST(req: Request) {
   currency_pair = f'{from_currency}{to_currency}=X'
   data = yf.Ticker(currency_pair).history(period='1d')
   latest_rate = data['Close'].iloc[-1]
-  latest_rate
+  latest_rate = latest_rate * ${amount}
   `;
                             console.log('Currency pair:', from, to);
 
@@ -446,17 +719,17 @@ export async function POST(req: Request) {
                         parameters: z.object({
                             queries: z.array(z.string().describe(`Today's Date: ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit", weekday: "short" })} Array of search queries to look up on the web. If relevant always based on date. Default is 1 to 10 queries.`)),
                             maxResults: z.array(
-                                z.number().describe('Array of maximum number of results to return per query. Default is 10.').default(10),
+                                z.number().describe('Array of maximum number of results to return per query. Default is 10.'),
                             ),
                             topics: z.array(
-                                z.enum(['general', 'news', 'finance']).describe('Array of topic types to search for. Default is general.').default('general'),
+                                z.enum(['general', 'news', 'finance']).describe('Array of topic types to search for. Default is general.'),
                             ),
                             searchDepth: z.array(
-                                z.enum(['basic', 'advanced']).describe('Array of search depths to use. Default is basic. Use advanced for more detailed results.').default('basic'),
+                                z.enum(['basic', 'advanced']).describe('Array of search depths to use. Default is basic. Use advanced for more detailed results.'),
                             ),
                             exclude_domains: z
                                 .array(z.string())
-                                .describe('A list of domains to exclude from all search results. Default is an empty list.').default([]),
+                                .describe('A list of domains to exclude from all search results. Default is an empty list.'),
                         }),
                         execute: async ({
                             queries,
@@ -513,7 +786,6 @@ export async function POST(req: Request) {
                                         url: obj.url,
                                         title: obj.title,
                                         content: obj.content,
-                                        raw_content: obj.raw_content,
                                         published_date: topics[index] === 'news' ? obj.published_date : undefined,
                                     })),
                                     images: includeImageDescriptions
@@ -920,7 +1192,14 @@ export async function POST(req: Request) {
                                 apiKey: serverEnv.FIRECRAWL_API_KEY,
                             });
                             try {
-                                const content = await app.scrapeUrl(url);
+                                const content = await app.scrapeUrl(url,
+                                    {
+                                        agent: {
+                                            model: "FIRE-1",
+                                            prompt: "Extract the page title, main content, and a brief description."
+                                        }
+                                    }
+                                );
                                 if (!content.success || !content.metadata) {
                                     return {
                                         results: [{
@@ -1030,13 +1309,6 @@ export async function POST(req: Request) {
                             if (execution.error) {
                                 message += `Error: ${execution.error}\n`;
                                 console.log('Error: ', execution.error);
-                            }
-
-                            console.log(execution.results);
-                            if (execution.results[0].chart) {
-                                execution.results[0].chart.elements.map((element: any) => {
-                                    console.log(element.points);
-                                });
                             }
 
                             return {
@@ -1184,7 +1456,7 @@ export async function POST(req: Request) {
                             type: z
                                 .string()
                                 .describe('The type of place to search for (restaurants, hotels, attractions, geos).'),
-                            radius: z.number().default(30000).describe('The radius in meters (max 50000, default 30000).'),
+                            radius: z.number().describe('The radius in meters (max 50000).'),
                         }),
                         execute: async ({
                             location,
@@ -1510,11 +1782,76 @@ export async function POST(req: Request) {
                             }
                         },
                     }),
+                    mcp_search: tool({
+                        description: 'Search for mcp servers and get the information about them',
+                        parameters: z.object({
+                            query: z.string().describe('The query to search for'),
+                        }),
+                        execute: async ({ query }: { query: string }) => {
+                            try {
+                                // Call the Smithery Registry API
+                                const response = await fetch(
+                                    `https://registry.smithery.ai/servers?q=${encodeURIComponent(query)}`,
+                                    {
+                                        headers: {
+                                            'Authorization': `Bearer ${serverEnv.SMITHERY_API_KEY}`,
+                                            'Content-Type': 'application/json',
+                                        },
+                                    }
+                                );
+
+                                if (!response.ok) {
+                                    throw new Error(`Smithery API error: ${response.status} ${response.statusText}`);
+                                }
+
+                                const data = await response.json();
+
+                                // Get detailed information for each server
+                                const detailedServers = await Promise.all(
+                                    data.servers.map(async (server: any) => {
+                                        const detailResponse = await fetch(
+                                            `https://registry.smithery.ai/servers/${encodeURIComponent(server.qualifiedName)}`,
+                                            {
+                                                headers: {
+                                                    'Authorization': `Bearer ${serverEnv.SMITHERY_API_KEY}`,
+                                                    'Content-Type': 'application/json',
+                                                },
+                                            }
+                                        );
+
+                                        if (!detailResponse.ok) {
+                                            console.warn(`Failed to fetch details for ${server.qualifiedName}`);
+                                            return server;
+                                        }
+
+                                        const details = await detailResponse.json();
+                                        return {
+                                            ...server,
+                                            deploymentUrl: details.deploymentUrl,
+                                            connections: details.connections,
+                                        };
+                                    })
+                                );
+
+                                return {
+                                    servers: detailedServers,
+                                    pagination: data.pagination,
+                                    query: query
+                                };
+                            } catch (error) {
+                                console.error('Smithery search error:', error);
+                                return {
+                                    error: error instanceof Error ? error.message : 'Unknown error',
+                                    query: query
+                                };
+                            }
+                        },
+                    }),
                     reason_search: tool({
                         description: 'Perform a reasoned web search with multiple steps and sources.',
                         parameters: z.object({
                             topic: z.string().describe('The main topic or question to research'),
-                            depth: z.enum(['basic', 'advanced']).describe('Search depth level').default('basic'),
+                            depth: z.enum(['basic', 'advanced']).describe('Search depth level'),
                         }),
                         execute: async ({ topic, depth }: { topic: string; depth: 'basic' | 'advanced' }) => {
                             const apiKey = serverEnv.TAVILY_API_KEY;
@@ -2338,11 +2675,12 @@ export async function POST(req: Request) {
                     }
                 },
                 onFinish(event) {
-                    console.log('Fin reason[1]: ', event.finishReason);
-                    console.log('Reasoning[1]: ', event.reasoning);
-                    console.log('reasoning details[1]: ', event.reasoningDetails);
-                    console.log('Steps[1] ', event.steps);
-                    console.log('Messages[1]: ', event.response.messages);
+                    console.log('Fin reason: ', event.finishReason);
+                    console.log('Reasoning: ', event.reasoning);
+                    console.log('reasoning details: ', event.reasoningDetails);
+                    console.log('Steps: ', event.steps);
+                    console.log('Messages: ', event.response.messages);
+                    console.log('Response: ', event.response);
                 },
                 onError(event) {
                     console.log('Error: ', event.error);

@@ -105,7 +105,7 @@ export default function AboutPage() {
                         {/* Company Name/Logo */}
                         <motion.div variants={item} className="text-center">
                             <Link href="/" className="inline-flex items-end gap-3 text-5xl font-syne font-bold">
-                                <NextImage src="/scira.png" alt="Scira Logo" className="h-16 w-16 invert-0 dark:invert" width={64} height={64} unoptimized quality={100}/>
+                                <NextImage src="/scira.png" alt="Scira Logo" className="h-16 w-16 invert dark:invert-0" width={64} height={64} unoptimized quality={100}/>
                                 <span className=''>Scira</span>
                             </Link>
                         </motion.div>
@@ -291,7 +291,7 @@ export default function AboutPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <div className="text-center space-y-2">
                             <div className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-neutral-900 to-neutral-600 dark:from-white dark:to-neutral-400">
-                                350K+
+                                1M+
                             </div>
                             <p className="text-neutral-600 dark:text-neutral-400">Questions Answered</p>
                         </div>
@@ -361,18 +361,26 @@ export default function AboutPage() {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                        <div className="p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
-                            <h3 className="font-semibold">Grok 2</h3>
-                            <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">Best-in-class performance with real-time knowledge</p>
+                    <div className="flex flex-col sm:flex-row flex-wrap justify-center items-stretch gap-6">
+                        <div className="p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 w-full sm:w-[calc(50%-12px)] lg:w-[280px]">
+                            <h3 className="font-semibold">Grok 3.0</h3>
+                            <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">xAI&apos;s most intelligent model</p>
                         </div>
-                        <div className="p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
-                            <h3 className="font-semibold">Grok 2 Vision</h3>
-                            <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">Advanced image understanding and analysis</p>
+                        <div className="p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 w-full sm:w-[calc(50%-12px)] lg:w-[280px]">
+                            <h3 className="font-semibold">Grok 3.0 Mini</h3>
+                            <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">xAI&apos;s most efficient model</p>
                         </div>
-                        <div className="p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
-                            <h3 className="font-semibold">Grok 3</h3>
-                            <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">Next-generation AI (coming soon)</p>
+                        <div className="p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 w-full sm:w-[calc(50%-12px)] lg:w-[280px]">
+                            <h3 className="font-semibold">Grok 2.0 Vision</h3>
+                            <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">xAI&apos;s most advanced vision model</p>
+                        </div>
+                        <div className="p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 w-full sm:w-[calc(50%-12px)] lg:w-[280px]">
+                            <h3 className="font-semibold">OpenAI GPT 4.1 Mini</h3>
+                            <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">OpenAI&apos;s smartest mini model</p>
+                        </div>
+                        <div className="p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 w-full sm:w-[calc(50%-12px)] lg:w-[280px]">
+                            <h3 className="font-semibold">Qwen QWQ 32B</h3>
+                            <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">Alibaba&apos;s most advanced model</p>
                         </div>
                     </div>
                 </motion.div>
@@ -537,7 +545,7 @@ export default function AboutPage() {
                 <div className="mx-auto max-w-5xl px-4 py-12">
                     <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
                         <div className="flex items-center gap-3">
-                            <img src="/scira.png" alt="Scira Logo" className="h-8 w-8 invert" />
+                            <img src="/scira.png" alt="Scira Logo" className="h-8 w-8" />
                             <p className="text-sm text-neutral-600 dark:text-neutral-400">
                                 © {new Date().getFullYear()} All rights reserved.
                             </p>

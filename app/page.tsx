@@ -67,6 +67,7 @@ import {
     Plane,
     Play as PlayIcon,
     Plus,
+    Server,
     Sun,
     TrendingUp,
     TrendingUpIcon,
@@ -124,6 +125,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import MemoryManager from '@/components/memory-manager';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import MCPServerList from '@/components/mcp-server-list';
 
 export const maxDuration = 120;
 
@@ -681,12 +683,6 @@ const HomeContent = () => {
             user_id: userId,
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
-        onToolCall({ toolCall, }) {
-            console.log("[tool call]:", toolCall.toolName, toolCall.toolCallId, toolCall.args);
-            if ('result' in toolCall) {
-                console.log("[tool call result]:", toolCall.result);
-            }
-        },
         onFinish: async (message, { finishReason }) => {
             console.log("[finish reason]:", finishReason);
             if (message.content && (finishReason === 'stop' || finishReason === 'length')) {
@@ -1109,9 +1105,9 @@ const HomeContent = () => {
             },
             table(children) {
                 return (
-                    <div className="w-full my-8 overflow-hidden">
-                        <div className="w-full overflow-x-auto rounded-sm border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm">
-                            <table className="w-full table-auto divide-y divide-neutral-200 dark:divide-neutral-800 m-0">
+                    <div className="w-full my-6 overflow-hidden rounded-md">
+                        <div className="w-full overflow-x-auto rounded-md border border-neutral-200 dark:border-neutral-800 shadow-sm">
+                            <table className="w-full border-collapse min-w-full divide-y divide-neutral-200 dark:divide-neutral-800 m-0">
                                 {children}
                             </table>
                         </div>
@@ -1120,7 +1116,7 @@ const HomeContent = () => {
             },
             tableRow(children) {
                 return (
-                    <tr className="transition-colors hover:bg-neutral-50/80 dark:hover:bg-neutral-800/50">
+                    <tr className="border-b border-neutral-200 dark:border-neutral-800 last:border-0">
                         {children}
                     </tr>
                 );
@@ -1131,35 +1127,33 @@ const HomeContent = () => {
 
                 return isHeader ? (
                     <th className={cn(
-                        "px-4 py-3.5 text-sm font-medium text-neutral-900 dark:text-neutral-100",
-                        "bg-neutral-50/80 dark:bg-neutral-800/80",
-                        "first:pl-6 last:pr-6",
-                        "w-auto min-w-[120px]",
+                        "px-4 py-2.5 text-sm font-semibold text-neutral-900 dark:text-neutral-50",
+                        "bg-neutral-100 dark:bg-neutral-800/90",
+                        "whitespace-nowrap",
                         align
                     )}>
-                        <div className="break-words">{children}</div>
+                        {children}
                     </th>
                 ) : (
                     <td className={cn(
                         "px-4 py-3 text-sm text-neutral-700 dark:text-neutral-300",
-                        "first:pl-6 last:pr-6",
-                        "w-auto min-w-[120px] max-w-[300px]",
+                        "bg-white dark:bg-neutral-900",
                         align
                     )}>
-                        <div className="break-words">{children}</div>
+                        {children}
                     </td>
                 );
             },
             tableHeader(children) {
                 return (
-                    <thead className="sticky top-0 z-10">
+                    <thead className="bg-neutral-100 dark:bg-neutral-800/90">
                         {children}
                     </thead>
                 );
             },
             tableBody(children) {
                 return (
-                    <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800 bg-transparent">
+                    <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800 bg-white dark:bg-neutral-900">
                         {children}
                     </tbody>
                 );
@@ -1337,7 +1331,7 @@ const HomeContent = () => {
                 <div className='flex items-center space-x-4'>
                     {/* <Link
                         target="_blank"
-                        href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fzaidmukaddam%2Fscira&env=XAI_API_KEY,MISTRAL_API_KEY,COHERE_API_KEY,E2B_API_KEY,ELEVENLABS_API_KEY,TAVILY_API_KEY,EXA_API_KEY,TMDB_API_KEY,YT_ENDPOINT,FIRECRAWL_API_KEY,OPENWEATHER_API_KEY,SANDBOX_TEMPLATE_ID,GOOGLE_MAPS_API_KEY,MAPBOX_ACCESS_TOKEN,TRIPADVISOR_API_KEY,AVIATION_STACK_API_KEY,CRON_SECRET,BLOB_READ_WRITE_TOKEN,NEXT_PUBLIC_MAPBOX_TOKEN,NEXT_PUBLIC_POSTHOG_KEY,NEXT_PUBLIC_POSTHOG_HOST,NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,MEM0_API_KEY,MEM0_ORG_ID,MEM0_PROJECT_ID&envDescription=API%20keys%20and%20configuration%20required%20for%20Scira%20to%20function"
+                        href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fzaidmukaddam%2Fscira&env=XAI_API_KEY,OPENAI_API_KEY,GROQ_API_KEY,E2B_API_KEY,ELEVENLABS_API_KEY,TAVILY_API_KEY,EXA_API_KEY,TMDB_API_KEY,YT_ENDPOINT,FIRECRAWL_API_KEY,OPENWEATHER_API_KEY,SANDBOX_TEMPLATE_ID,GOOGLE_MAPS_API_KEY,MAPBOX_ACCESS_TOKEN,TRIPADVISOR_API_KEY,AVIATION_STACK_API_KEY,CRON_SECRET,BLOB_READ_WRITE_TOKEN,NEXT_PUBLIC_MAPBOX_TOKEN,NEXT_PUBLIC_POSTHOG_KEY,NEXT_PUBLIC_POSTHOG_HOST,NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,MEM0_API_KEY,MEM0_ORG_ID,MEM0_PROJECT_ID,SMITHERY_API_KEY&envDescription=API%20keys%20and%20configuration%20required%20for%20Scira%20to%20function%20(including%20SMITHERY_API_KEY)"
                         className="flex flex-row gap-2 items-center py-1.5 px-2 rounded-md 
                             bg-accent hover:bg-accent/80
                             backdrop-blur-sm text-foreground shadow-sm text-sm
@@ -1473,7 +1467,7 @@ const HomeContent = () => {
                     <div key={`${messageIndex}-${partIndex}-text`}>
                         <div className="flex items-center justify-between mt-5 mb-2">
                             <div className="flex items-center gap-2">
-                                <Image src="/scira.png" alt="Scira" className='size-6 invert-0 dark:invert' width={100} height={100} unoptimized quality={100} />
+                                <Image src="/scira.png" alt="Scira" className='size-6 invert dark:invert-0' width={100} height={100} unoptimized quality={100} />
                                 <h2 className="text-lg font-semibold font-syne text-neutral-800 dark:text-neutral-200">
                                     Scira AI
                                 </h2>
@@ -1517,10 +1511,10 @@ const HomeContent = () => {
                 if (timing) {
                     if (timing.endTime) {
                         // Completed reasoning - show fixed duration
-                        duration = ((timing.endTime - timing.startTime) / 1000).toFixed(1);
+                        duration = ((timing.endTime - timing.startTime) / 1000).toFixed(3);
                     } else {
                         // Ongoing reasoning - calculate live elapsed time
-                        liveElapsedTime = ((Date.now() - timing.startTime) / 1000).toFixed(1);
+                        liveElapsedTime = ((Date.now() - timing.startTime) / 1000).toFixed(3);
                     }
                 }
                 
@@ -2608,22 +2602,19 @@ const ToolInvocationListView = memo(
                 if (toolInvocation.toolName === 'stock_chart') {
                     return (
                         <div className="flex flex-col gap-3 w-full mt-4">
-                            <Badge
-                                variant="secondary"
-                                className={cn(
-                                    "w-fit flex items-center gap-3 px-4 py-2 rounded-full transition-colors duration-200",
-                                    !result
-                                        ? "bg-blue-50/50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                                        : "bg-green-50/50 dark:bg-green-900/20 text-green-600 dark:text-green-400"
-                                )}>
-                                <TrendingUpIcon className="h-4 w-4" />
-                                <span className="font-medium">{args.title}</span>
-                                {!result ? (
+                            {/* Only show the badge when loading, hide it after results are loaded */}
+                            {!result && (
+                                <Badge
+                                    variant="secondary"
+                                    className={cn(
+                                        "w-fit flex items-center gap-3 px-4 py-2 rounded-full transition-colors duration-200",
+                                        "bg-blue-200 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                                    )}>
+                                    <TrendingUpIcon className="h-4 w-4" />
+                                    <span className="font-medium">{args.title}</span>
                                     <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                    <Check className="h-4 w-4" />
-                                )}
-                            </Badge>
+                                </Badge>
+                            )}
 
                             {result?.chart && (
                                 <div className="w-full">
@@ -2635,7 +2626,9 @@ const ToolInvocationListView = memo(
                                         }}
                                         data={result.chart.elements}
                                         stock_symbols={args.stock_symbols}
+                                        currency_symbols={args.currency_symbols || args.stock_symbols.map(() => 'USD')}
                                         interval={args.interval}
+                                        news_results={result.news_results}
                                     />
                                 </div>
                             )}
@@ -2984,6 +2977,45 @@ const ToolInvocationListView = memo(
                         );
                     }
                     return <MemoryManager result={result} />;
+                }
+
+                if (toolInvocation.toolName === 'mcp_search') {
+                    if (!result) {
+                        return (
+                            <SearchLoadingState
+                                icon={Server}
+                                text="Searching MCP servers..."
+                                color="blue"
+                            />
+                        );
+                    }
+
+                    return (
+                        <div className="w-full my-2">
+                            <Card className="shadow-none border-neutral-200 dark:border-neutral-800 overflow-hidden">
+                                <CardHeader className="py-3 px-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-7 w-7 rounded-md bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                                            <Server className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                                        </div>
+                                        <div>
+                                            <CardTitle className="text-base">MCP Server Results</CardTitle>
+                                            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                                                Search results for &quot;{result.query}&quot;
+                                            </p>
+                                        </div>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="pt-0 px-3 pb-3">
+                                    <MCPServerList 
+                                        servers={result.servers || []} 
+                                        query={result.query} 
+                                        error={result.error}
+                                    />
+                                </CardContent>
+                            </Card>
+                        </div>
+                    );
                 }
 
                 return null;

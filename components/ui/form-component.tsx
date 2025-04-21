@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 import useWindowSize from '@/hooks/use-window-size';
-import { X } from 'lucide-react';
+import { TelescopeIcon, X } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -17,9 +17,9 @@ import {
 import { cn, SearchGroup, SearchGroupId, searchGroups } from '@/lib/utils';
 import { TextMorph } from '@/components/core/text-morph';
 import { Upload } from 'lucide-react';
-import { Mountain } from "lucide-react"
 import { UIMessage } from '@ai-sdk/ui-utils';
-import { Image, Globe } from 'lucide-react';
+import { Globe } from 'lucide-react';
+import { track } from '@vercel/analytics';
 
 interface ModelSwitcherProps {
     selectedModel: string;
@@ -85,6 +85,10 @@ const getColorClasses = (color: string, isSelected: boolean = false) => {
             return isSelected
                 ? `${baseClasses} ${selectedClasses} !bg-gradient-to-r !from-[#0b3d91] !to-[#d01012] dark:!bg-gradient-to-r dark:!from-[#0b3d91] dark:!to-[#d01012] !text-white hover:!opacity-90 !border-[#0b3d91] dark:!border-[#0b3d91]`
                 : `${baseClasses} !text-[#d01012] dark:!text-[#3f83f8] hover:!bg-gradient-to-r hover:!from-[#0b3d91] hover:!to-[#d01012] hover:!text-white dark:hover:!text-white`;
+        case 'blue':
+            return isSelected
+                ? `${baseClasses} ${selectedClasses} !bg-[#2563eb] dark:!bg-[#2563eb] !text-white hover:!bg-[#1d4ed8] dark:hover:!bg-[#1d4ed8] !border-[#2563eb] dark:!border-[#2563eb]`
+                : `${baseClasses} !text-[#2563eb] dark:!text-[#60a5fa] hover:!bg-[#2563eb] hover:!text-white dark:hover:!bg-[#2563eb] dark:hover:!text-white`;
         default:
             return isSelected
                 ? `${baseClasses} ${selectedClasses} !bg-neutral-500 dark:!bg-neutral-700 !text-white hover:!bg-neutral-600 dark:hover:!bg-neutral-800 !border-neutral-500 dark:!border-neutral-700`
@@ -179,16 +183,17 @@ const ModelSwitcher: React.FC<ModelSwitcherProps> = ({ selectedModel, setSelecte
                 </span>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-                className="w-[220px] p-1 !font-sans rounded-lg bg-white dark:bg-neutral-900 !mt-1.5 !z-[52] shadow-lg border border-neutral-200 dark:border-neutral-800 max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-300 dark:scrollbar-thumb-neutral-700 scrollbar-track-transparent"
+                className="w-[200px] p-0.5 !font-sans rounded-lg bg-white dark:bg-neutral-900 !mt-1.5 !z-[52] shadow-lg border border-neutral-200 dark:border-neutral-800 max-h-[290px] overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-300 dark:scrollbar-thumb-neutral-700 scrollbar-track-transparent"
                 align="start"
                 side="bottom"
                 sideOffset={8}
+                forceMount
             >
                 {Object.entries(groupedModels).map(([category, categoryModels], categoryIndex) => (
                     <div key={category} className={cn(
                         categoryIndex > 0 && "mt-1"
                     )}>
-                        <div className="px-2 py-1.5 text-[11px] font-medium text-neutral-500 dark:text-neutral-400 select-none sticky top-0 bg-white dark:bg-neutral-900 z-10">
+                        <div className="px-2 py-1 text-[10px] font-medium text-neutral-500 dark:text-neutral-400 select-none bg-white dark:bg-neutral-900 z-10">
                             {category}
                         </div>
                         <div className="space-y-0.5">
@@ -206,14 +211,14 @@ const ModelSwitcher: React.FC<ModelSwitcherProps> = ({ selectedModel, setSelecte
                                         }
                                     }}
                                     className={cn(
-                                        "flex items-center gap-2 px-2 py-1.5 rounded-md text-xs",
+                                        "flex items-center gap-1.5 px-1.5 py-1 rounded-md text-xs min-h-[36px]",
                                         "transition-all duration-200",
                                         "hover:shadow-sm",
                                         getColorClasses(model.color, selectedModel === model.value)
                                     )}
                                 >
                                     <div className={cn(
-                                        "p-1.5 rounded-md",
+                                        "p-1 rounded-md",
                                         selectedModel === model.value
                                             ? "bg-black/10 dark:bg-white/10"
                                             : "bg-black/5 dark:bg-white/5",
@@ -224,22 +229,23 @@ const ModelSwitcher: React.FC<ModelSwitcherProps> = ({ selectedModel, setSelecte
                                                 src={model.icon}
                                                 alt={model.label}
                                                 className={cn(
-                                                    "w-3 h-3 object-contain",
-                                                    model.iconClass
+                                                    "w-2.5 h-2.5 object-contain",
+                                                    model.iconClass,
+                                                    model.value === "scira-optimus" && "invert"
                                                 )}
                                             />
                                         ) : (
                                             <model.icon
                                                 className={cn(
-                                                    "w-3 h-3",
+                                                    "w-2.5 h-2.5",
                                                     model.iconClass
                                                 )}
                                             />
                                         )}
                                     </div>
                                     <div className="flex flex-col gap-px min-w-0">
-                                        <div className="font-medium truncate">{model.label}</div>
-                                        <div className="text-[10px] opacity-80 truncate leading-tight">{model.description}</div>
+                                        <div className="font-medium truncate text-[12px]">{model.label}</div>
+                                        <div className="text-[9px] opacity-80 truncate leading-tight">{model.description}</div>
                                     </div>
                                 </DropdownMenuItem>
                             ))}
@@ -523,8 +529,8 @@ const SwitchNotification: React.FC<SwitchNotificationProps> = ({
                 return 'bg-[#8B5CF6] dark:bg-[#8B5CF6] border-[#8B5CF6] dark:border-[#8B5CF6]';
             case 'purple':
                 return 'bg-[#5E5ADB] dark:bg-[#5E5ADB] border-[#5E5ADB] dark:border-[#5E5ADB]';
-            case 'alpha':
-                return 'bg-gradient-to-r from-[#0b3d91] to-[#d01012] dark:from-[#0b3d91] dark:to-[#d01012] border-[#0b3d91] dark:border-[#0b3d91]';
+            case 'blue':
+                return 'bg-[#2563eb] dark:bg-[#2563eb] border-[#2563eb] dark:border-[#2563eb]';
             default:
                 return 'bg-neutral-100 dark:bg-neutral-900 border-neutral-300 dark:border-neutral-700';
         }
@@ -549,7 +555,7 @@ const SwitchNotification: React.FC<SwitchNotificationProps> = ({
                     }}
                     className={cn(
                         "w-[98%] max-w-2xl overflow-hidden mx-auto",
-                        "text-sm text-neutral-700 dark:text-neutral-300 -mb-1"
+                        "text-sm text-neutral-700 dark:text-neutral-300 -mb-1.5"
                     )}
                 >
                     <div className={cn(
@@ -560,7 +566,7 @@ const SwitchNotification: React.FC<SwitchNotificationProps> = ({
                         {icon && (
                             <span className={cn(
                                 "flex-shrink-0 size-3.5 sm:size-4",
-                                useModelColor ? getIconColorClass() : "text-primary dark:text-white"
+                                useModelColor ? getIconColorClass() : "text-primary",
                             )}>
                                 {icon}
                             </span>
@@ -742,9 +748,6 @@ const FormComponent: React.FC<FormComponentProps> = ({
     status,
     setHasSubmitted,
 }) => {
-    const MIN_HEIGHT = 72;
-    const MAX_HEIGHT = 400;
-    
     const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
     const isMounted = useRef(true);
     const isCompositionActive = useRef(false)
@@ -753,7 +756,6 @@ const FormComponent: React.FC<FormComponentProps> = ({
     const [isFocused, setIsFocused] = useState(true);
     const [isDragging, setIsDragging] = useState(false);
     const [isGroupSelectorExpanded, setIsGroupSelectorExpanded] = useState(false);
-    const [isExceedingLimit, setIsExceedingLimit] = useState(false);
     const [switchNotification, setSwitchNotification] = useState<{
         show: boolean;
         icon: React.ReactNode;
@@ -803,65 +805,17 @@ const FormComponent: React.FC<FormComponentProps> = ({
         };
     }, [switchNotification.visibilityTimeout]);
 
-    const autoResizeInput = (target: HTMLTextAreaElement) => {
-        if (!target) return;
-        // Set height to min-height first to prevent jumping
-        target.style.height = `${MIN_HEIGHT}px`;
-        // Then calculate the actual height needed
-        const scrollHeight = target.scrollHeight;
-        if (scrollHeight > MIN_HEIGHT) {
-            requestAnimationFrame(() => {
-                target.style.height = `${Math.min(scrollHeight, MAX_HEIGHT)}px`;
-            });
-        }
-    };
-
-    // Auto-resize specifically on component mount (once)
-    useEffect(() => {
-        if (inputRef.current) {
-            // Handle the initial height on mount
-            inputRef.current.style.height = `${MIN_HEIGHT}px`;
-            // Delay resize calculation slightly to ensure proper rendering
-            const mountTimeout = setTimeout(() => {
-                if (inputRef.current) {
-                    const scrollHeight = inputRef.current.scrollHeight;
-                    if (scrollHeight > MIN_HEIGHT) {
-                        inputRef.current.style.height = `${Math.min(scrollHeight, MAX_HEIGHT)}px`;
-                    }
-                }
-            }, 50);
-            return () => clearTimeout(mountTimeout);
-        }
-    }, []);
-
-    // Auto-resize on input changes
-    useEffect(() => {
-        if (inputRef.current) {
-            // Small delay to ensure the component is fully rendered
-            const timeoutId = setTimeout(() => {
-                autoResizeInput(inputRef.current!);
-            }, 10);
-            return () => clearTimeout(timeoutId);
-        }
-    }, [input]);
-
     const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         event.preventDefault();
         const newValue = event.target.value;
 
         // Check if input exceeds character limit
         if (newValue.length > MAX_INPUT_CHARS) {
-            setIsExceedingLimit(true);
-            // Optional: You can truncate the input here or just warn the user
-            // setInput(newValue.substring(0, MAX_INPUT_CHARS));
             setInput(newValue);
             toast.error(`Your input exceeds the maximum of ${MAX_INPUT_CHARS} characters.`);
         } else {
-            setIsExceedingLimit(false);
             setInput(newValue);
         }
-
-        autoResizeInput(event.target);
     };
 
     const handleFocus = () => {
@@ -1103,6 +1057,9 @@ const FormComponent: React.FC<FormComponentProps> = ({
         }
 
         if (input.trim() || attachments.length > 0) {
+            track('model_selected', {
+                model: selectedModel,
+            });
             setHasSubmitted(true);
             lastSubmittedQueryRef.current = input.trim();
 
@@ -1253,21 +1210,19 @@ const FormComponent: React.FC<FormComponentProps> = ({
                             onFocus={handleFocus}
                             onBlur={handleBlur}
                             className={cn(
-                                "min-h-[72px] w-full resize-none rounded-lg custom-scrollbar",
+                                "w-full rounded-lg resize-none",
                                 "text-base leading-relaxed",
                                 "bg-neutral-100 dark:bg-neutral-900",
                                 "border !border-neutral-200 dark:!border-neutral-700",
-                                "focus:!border-neutral-300 dark:focus:!border-neutral-600",
-                                isFocused ? "!border-neutral-300 dark:!border-neutral-600" : "",
+                                "focus:!border-neutral-300 dark:!focus:!border-neutral-500",
+                                isFocused ? "!border-neutral-300 dark:!border-neutral-500" : "",
                                 "text-neutral-900 dark:text-neutral-100",
                                 "focus:!ring-0",
                                 "px-4 py-4 pb-16",
-                                "overflow-y-auto",
                                 "touch-manipulation",
+                                "whatsize"
                             )}
                             style={{
-                                minHeight: `${MIN_HEIGHT}px`,
-                                maxHeight: `${MAX_HEIGHT}px`,
                                 WebkitUserSelect: 'text',
                                 WebkitTouchCallout: 'none',
                             }}
@@ -1285,7 +1240,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                                 "absolute bottom-0 inset-x-0 flex justify-between items-center p-2 rounded-b-lg",
                                 "bg-neutral-100 dark:bg-neutral-900",
                                 "!border !border-t-0 !border-neutral-200 dark:!border-neutral-700",
-                                isFocused ? "!border-neutral-300 dark:!border-neutral-600" : "",
+                                isFocused ? "!border-neutral-300 dark:!border-neutral-500" : "",
                                 isProcessing ? "!opacity-20 !cursor-not-allowed" : ""
                             )}
                         >
@@ -1373,7 +1328,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                                             showSwitchNotification(
                                                 newModeText,
                                                 description,
-                                                selectedGroup === 'extreme' ? <Globe className="size-4" /> : <Mountain className="size-4" />,
+                                                selectedGroup === 'extreme' ? <Globe className="size-4" /> : <TelescopeIcon className="size-4" />,
                                                 newMode, // Use the new mode as the color identifier
                                                 'group'  // Specify this is a group notification
                                             );
@@ -1388,7 +1343,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                                                 : "bg-white dark:bg-neutral-900 text-neutral-500",
                                         )}
                                     >
-                                        <Mountain className="h-3.5 w-3.5" />
+                                        <TelescopeIcon className="h-3.5 w-3.5" />
                                         <span className="hidden sm:block text-xs font-medium">Extreme</span>
                                     </button>
                                 </div>
